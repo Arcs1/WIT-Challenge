@@ -1,0 +1,3 @@
+rootProject.name = 'wit-challenge'
+
+include 'calculator', 'rest'
