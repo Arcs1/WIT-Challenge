@@ -1,5 +1,8 @@
 package com.rest.rest;
 
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -7,39 +10,75 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/calculator")
 public class CalculatorController {
 
+    private final KafkaProducerService kafkaProducerService;
+
+    @Autowired
+    public CalculatorController(KafkaProducerService kafkaProducerService) {
+        this.kafkaProducerService = kafkaProducerService;
+    }
+
     @GetMapping("/sum")
-    public ResponseEntity<?> sum(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        BigDecimal result = a.add(b);
-        return ResponseEntity.ok().body(new OperationResult(result));
+    public ResponseEntity<OperationResult> sum(@RequestParam BigDecimal a, @RequestParam BigDecimal b, HttpServletResponse response) {
+        String requestId = UUID.randomUUID().toString();
+        MDC.put("requestId", requestId);
+
+        try {
+            String result = kafkaProducerService.sendArithmeticRequest("sum", requestId, a.toString(), b.toString());
+            response.addHeader("X-Request-ID", requestId);
+            return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
+        } finally {
+            MDC.clear();
+        }
     }
 
     @GetMapping("/subtract")
-    public ResponseEntity<?> subtract(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        BigDecimal result = a.subtract(b);
-        return ResponseEntity.ok().body(new OperationResult(result));
+    public ResponseEntity<OperationResult> subtract(@RequestParam BigDecimal a, @RequestParam BigDecimal b, HttpServletResponse response) {
+        String requestId = UUID.randomUUID().toString();
+        MDC.put("requestId", requestId);
+
+        try {
+            String result = kafkaProducerService.sendArithmeticRequest("subtract", requestId, a.toString(), b.toString());
+            response.addHeader("X-Request-ID", requestId);
+            return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
+        } finally {
+            MDC.clear();
+        }
     }
 
     @GetMapping("/multiply")
-    public ResponseEntity<?> multiply(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        BigDecimal result = a.multiply(b);
-        return ResponseEntity.ok().body(new OperationResult(result));
+    public ResponseEntity<OperationResult> multiply(@RequestParam BigDecimal a, @RequestParam BigDecimal b, HttpServletResponse response) {
+        String requestId = UUID.randomUUID().toString();
+        MDC.put("requestId", requestId);
+
+        try {
+            String result = kafkaProducerService.sendArithmeticRequest("multiply", requestId, a.toString(), b.toString());
+            response.addHeader("X-Request-ID", requestId);
+            return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
+        } finally {
+            MDC.clear();
+        }
     }
 
     @GetMapping("/divide")
-    public ResponseEntity<?> divide(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        if (b.compareTo(BigDecimal.ZERO) == 0) {
-            return ResponseEntity.badRequest().body("Division by zero is not allowed");
+    public ResponseEntity<OperationResult> divide(@RequestParam BigDecimal a, @RequestParam BigDecimal b, HttpServletResponse response) {
+        String requestId = UUID.randomUUID().toString();
+        MDC.put("requestId", requestId);
+
+        try {
+            String result = kafkaProducerService.sendArithmeticRequest("divide", requestId, a.toString(), b.toString());
+            response.addHeader("X-Request-ID", requestId);
+            return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
+        } finally {
+            MDC.clear();
         }
-        BigDecimal result = a.divide(b, MathContext.DECIMAL128);
-        return ResponseEntity.ok().body(new OperationResult(result));
     }
 
-    private record OperationResult(BigDecimal result) {
+    public record OperationResult(BigDecimal result) {
     }
 }
