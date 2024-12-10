@@ -93,7 +93,7 @@ public class CalculatorController {
             logger.info("Received divide request: a = {}, b = {}", a, b);
             if (b.equals(BigDecimal.ZERO)) {
                 logger.warn("Attempted division by zero");
-                return ResponseEntity.status(400).body(new OperationResult(null, "Attempted division by zero"));
+                return ResponseEntity.status(400).body(new OperationResult(null, "Division by zero is not allowed"));
             }
             String result = kafkaProducerService.sendArithmeticRequest("divide", requestId, a.toString(), b.toString());
             logger.info("Divide result: {}", result);
