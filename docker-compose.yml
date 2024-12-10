@@ -8,7 +8,7 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092
       KAFKA_LISTENER_NAMES: PLAINTEXT,CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
@@ -18,3 +18,30 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
+
+  calculator:
+    build:
+      context: ./calculator
+    container_name: calculator
+    depends_on:
+      - broker
+    ports:
+      - 8081:8081
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP-SERVERS=broker:9092
+      - SPRING_KAFKA_CONSUMER_GROUP_ID=calculator-group
+      - SPRING_KAFKA_LISTENER-MISSING_TOPICS_FATAL=false
+
+  rest:
+    build:
+      context: ./rest
+    container_name: rest
+    depends_on:
+      - broker
+      - calculator
+    ports:
+      - 8080:8080
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP-SERVERS=broker:9092
+      - SPRING_KAFKA_PRODUCER_ACKS=all
+      - SPRING_KAFKA_LISTENER-MISSING_TOPICS_FATAL=false
