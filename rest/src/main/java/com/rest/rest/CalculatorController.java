@@ -2,6 +2,8 @@ package com.rest.rest;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +18,7 @@ import java.util.UUID;
 @RequestMapping("/api/calculator")
 public class CalculatorController {
 
+    private static final Logger logger = LoggerFactory.getLogger(CalculatorController.class);
     private final KafkaProducerService kafkaProducerService;
 
     @Autowired
@@ -27,11 +30,16 @@ public class CalculatorController {
     public ResponseEntity<OperationResult> sum(@RequestParam BigDecimal a, @RequestParam BigDecimal b, HttpServletResponse response) {
         String requestId = UUID.randomUUID().toString();
         MDC.put("requestId", requestId);
+        response.addHeader("X-Request-ID", requestId);
 
         try {
+            logger.info("Received sum request: a = {}, b = {}", a, b);
             String result = kafkaProducerService.sendArithmeticRequest("sum", requestId, a.toString(), b.toString());
-            response.addHeader("X-Request-ID", requestId);
+            logger.info("Sum result: {}", result);
             return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
+        } catch (Exception e) {
+            logger.error("Error processing sum request", e);
+            return ResponseEntity.status(500).body(new OperationResult(null, "Error processing sum request: " + e.getMessage()));
         } finally {
             MDC.clear();
         }
@@ -41,11 +49,16 @@ public class CalculatorController {
     public ResponseEntity<OperationResult> subtract(@RequestParam BigDecimal a, @RequestParam BigDecimal b, HttpServletResponse response) {
         String requestId = UUID.randomUUID().toString();
         MDC.put("requestId", requestId);
+        response.addHeader("X-Request-ID", requestId);
 
         try {
+            logger.info("Received subtract request: a = {}, b = {}", a, b);
             String result = kafkaProducerService.sendArithmeticRequest("subtract", requestId, a.toString(), b.toString());
-            response.addHeader("X-Request-ID", requestId);
+            logger.info("Subtract result: {}", result);
             return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
+        } catch (Exception e) {
+            logger.error("Error processing subtract request", e);
+            return ResponseEntity.status(500).body(new OperationResult(null, "Error processing subtract request"));
         } finally {
             MDC.clear();
         }
@@ -55,11 +68,16 @@ public class CalculatorController {
     public ResponseEntity<OperationResult> multiply(@RequestParam BigDecimal a, @RequestParam BigDecimal b, HttpServletResponse response) {
         String requestId = UUID.randomUUID().toString();
         MDC.put("requestId", requestId);
+        response.addHeader("X-Request-ID", requestId);
 
         try {
+            logger.info("Received multiply request: a = {}, b = {}", a, b);
             String result = kafkaProducerService.sendArithmeticRequest("multiply", requestId, a.toString(), b.toString());
-            response.addHeader("X-Request-ID", requestId);
+            logger.info("Multiply result: {}", result);
             return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
+        } catch (Exception e) {
+            logger.error("Error processing multiply request", e);
+            return ResponseEntity.status(500).body(new OperationResult(null, "Error processing multiply request"));
         } finally {
             MDC.clear();
         }
@@ -69,16 +87,34 @@ public class CalculatorController {
     public ResponseEntity<OperationResult> divide(@RequestParam BigDecimal a, @RequestParam BigDecimal b, HttpServletResponse response) {
         String requestId = UUID.randomUUID().toString();
         MDC.put("requestId", requestId);
+        response.addHeader("X-Request-ID", requestId);
 
         try {
+            logger.info("Received divide request: a = {}, b = {}", a, b);
+            if (b.equals(BigDecimal.ZERO)) {
+                logger.warn("Attempted division by zero");
+                return ResponseEntity.status(400).body(new OperationResult(null, "Attempted division by zero"));
+            }
             String result = kafkaProducerService.sendArithmeticRequest("divide", requestId, a.toString(), b.toString());
-            response.addHeader("X-Request-ID", requestId);
+            logger.info("Divide result: {}", result);
             return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
+        } catch (Exception e) {
+            logger.error("Error processing divide request", e);
+            return ResponseEntity.status(500).body(new OperationResult(null, "Error processing divide request"));
         } finally {
             MDC.clear();
         }
     }
 
-    public record OperationResult(BigDecimal result) {
+    public record OperationResult(BigDecimal result, String error) {
+
+        public OperationResult(BigDecimal result) {
+            this(result, "None");
+        }
+
+        public OperationResult(BigDecimal result, String error) {
+            this.result = result;
+            this.error = error;
+        }
     }
 }

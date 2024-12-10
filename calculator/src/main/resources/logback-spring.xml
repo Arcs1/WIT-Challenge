@@ -1,0 +1,30 @@
+<configuration>
+
+    <!-- Enable Spring Boot default logging (optional if not using custom logging) -->
+    <springProfile name="default">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss} - [%thread] - %-5level - %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <!-- Log file appender for both modules -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/application.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} - [%thread] - %-5level - %logger{36} - [%X{requestId}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Log level settings -->
+    <root level="INFO">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+    <!-- Optional: Define logging levels for specific packages -->
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.springframework.kafka" level="INFO"/>
+
+</configuration>
