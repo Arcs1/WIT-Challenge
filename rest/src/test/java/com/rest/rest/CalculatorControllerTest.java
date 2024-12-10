@@ -118,6 +118,22 @@ public class CalculatorControllerTest {
     }
 
     @Test
+    void testMultiplyWithLargeNumbers() throws Exception {
+        Mockito.when(kafkaProducerService.sendArithmeticRequest(
+                        Mockito.eq("multiply"),
+                        Mockito.anyString(),
+                        Mockito.eq("1234567890123456789"),
+                        Mockito.eq("0.0000000000000000000987654321")))
+                .thenReturn("0.1219326311248285321112635269");
+
+        mockMvc.perform(get("/api/calculator/multiply")
+                        .param("a", "1234567890123456789")
+                        .param("b", "0.0000000000000000000987654321"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"result\":0.1219326311248285321112635269,\"error\":\"None\"}"));
+    }
+
+    @Test
     void testDivide() throws Exception {
         Mockito.when(kafkaProducerService.sendArithmeticRequest(
                         Mockito.eq("divide"),

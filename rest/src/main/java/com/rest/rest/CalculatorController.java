@@ -33,8 +33,10 @@ public class CalculatorController {
         response.addHeader("X-Request-ID", requestId);
 
         try {
-            logger.info("Received sum request: a = {}, b = {}", a, b);
-            String result = kafkaProducerService.sendArithmeticRequest("sum", requestId, a.toString(), b.toString());
+            String opA = a.stripTrailingZeros().toPlainString();
+            String opB = b.stripTrailingZeros().toPlainString();
+            logger.info("Received sum request: a = {}, b = {}", opA, opB);
+            String result = kafkaProducerService.sendArithmeticRequest("sum", requestId, opA, opB);
             logger.info("Sum result: {}", result);
             return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
         } catch (Exception e) {
@@ -52,8 +54,10 @@ public class CalculatorController {
         response.addHeader("X-Request-ID", requestId);
 
         try {
-            logger.info("Received subtract request: a = {}, b = {}", a, b);
-            String result = kafkaProducerService.sendArithmeticRequest("subtract", requestId, a.toString(), b.toString());
+            String opA = a.stripTrailingZeros().toPlainString();
+            String opB = b.stripTrailingZeros().toPlainString();
+            logger.info("Received subtract request: a = {}, b = {}", opA, opB);
+            String result = kafkaProducerService.sendArithmeticRequest("subtract", requestId, opA, opB);
             logger.info("Subtract result: {}", result);
             return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
         } catch (Exception e) {
@@ -71,8 +75,10 @@ public class CalculatorController {
         response.addHeader("X-Request-ID", requestId);
 
         try {
-            logger.info("Received multiply request: a = {}, b = {}", a, b);
-            String result = kafkaProducerService.sendArithmeticRequest("multiply", requestId, a.toString(), b.toString());
+            String opA = a.stripTrailingZeros().toPlainString();
+            String opB = b.stripTrailingZeros().toPlainString();
+            logger.info("Received multiply request: a = {}, b = {}", opA, opB);
+            String result = kafkaProducerService.sendArithmeticRequest("multiply", requestId, opA, opB);
             logger.info("Multiply result: {}", result);
             return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
         } catch (Exception e) {
@@ -90,12 +96,14 @@ public class CalculatorController {
         response.addHeader("X-Request-ID", requestId);
 
         try {
-            logger.info("Received divide request: a = {}, b = {}", a, b);
+            String opA = a.stripTrailingZeros().toPlainString();
+            String opB = b.stripTrailingZeros().toPlainString();
+            logger.info("Received divide request: a = {}, b = {}", opA, opB);
             if (b.equals(BigDecimal.ZERO)) {
                 logger.warn("Attempted division by zero");
                 return ResponseEntity.status(400).body(new OperationResult(null, "Division by zero is not allowed"));
             }
-            String result = kafkaProducerService.sendArithmeticRequest("divide", requestId, a.toString(), b.toString());
+            String result = kafkaProducerService.sendArithmeticRequest("divide", requestId, opA, opB);
             logger.info("Divide result: {}", result);
             return ResponseEntity.ok().body(new OperationResult(new BigDecimal(result)));
         } catch (Exception e) {
