@@ -2,8 +2,6 @@ services:
   broker:
     image: apache/kafka:latest
     container_name: broker
-    ports:
-      - 9092:9092
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -25,8 +23,6 @@ services:
     container_name: calculator
     depends_on:
       - broker
-    ports:
-      - 8081:8081
     environment:
       - SPRING_KAFKA_BOOTSTRAP-SERVERS=broker:9092
       - SPRING_KAFKA_CONSUMER_GROUP_ID=calculator-group
